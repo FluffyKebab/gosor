@@ -79,6 +79,13 @@ func (t *Tensor) Item() float64 {
 	return t.storage[t.ofset]
 }
 
+// ShallowCopy copies everything except the underling storage of the tensor.
 func (t *Tensor) ShallowCopy() *Tensor {
-	return &Tensor{strides: t.strides, sizes: t.sizes, ofset: t.ofset, storage: t.storage}
+	strides := make([]int, len(t.strides))
+	copy(strides, t.strides)
+
+	sizes := make([]int, len(t.sizes))
+	copy(sizes, t.sizes)
+
+	return &Tensor{strides: strides, sizes: sizes, ofset: t.ofset, storage: t.storage}
 }

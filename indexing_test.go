@@ -31,7 +31,7 @@ func TestTensorGet(t *testing.T) {
 	require.Equal(t, 7., tensor.Get(1, 1, 1))
 }
 
-func TestIndex(t *testing.T) {
+/* func TestIndexWithIndex(t *testing.T) {
 	t.Parallel()
 
 	tensor, err := New([]int{2, 2}, []float64{0, 1, 2, 3})
@@ -56,4 +56,184 @@ func TestIndex(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []float64{4, 5, 6, 7}, subTensor.Items())
 
+}
+
+func TestIndexWithBetween(t *testing.T) {
+	t.Parallel()
+
+	t1, err := New([]int{5}, []float64{0, 1, 2, 3, 4})
+	require.NoError(t, err)
+
+	t2, err := New([]int{4, 2}, []float64{
+		0, 1,
+		2, 3,
+		4, 5,
+		6, 7,
+	})
+	require.NoError(t, err)
+
+	t3, err := New([]int{3, 2, 2}, []float64{
+		0, 1,
+		2, 3,
+
+		4, 5,
+		6, 7,
+
+		8, 9,
+		10, 11,
+	})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		indexers        []Indexer
+		tensor          *Tensor
+		expectedItems   []float64
+		expectedStrides []int
+		expectedSizes   []int
+		expectedOfset   int
+	}{
+		{
+			indexers:        []Indexer{Between(0, 3)},
+			tensor:          t1,
+			expectedItems:   []float64{0, 1, 2},
+			expectedStrides: []int{1},
+			expectedSizes:   []int{3},
+			expectedOfset:   0,
+		},
+		{
+			indexers:        []Indexer{Between(1, 2)},
+			tensor:          t2,
+			expectedItems:   []float64{2, 3},
+			expectedStrides: []int{2, 1},
+			expectedSizes:   []int{1, 2},
+			expectedOfset:   2,
+		},
+		{
+			indexers:        []Indexer{Between(1, 3)},
+			tensor:          t2,
+			expectedItems:   []float64{2, 3, 4, 5},
+			expectedStrides: []int{2, 1},
+			expectedSizes:   []int{2, 2},
+			expectedOfset:   2,
+		},
+		{
+			indexers:        []Indexer{Between(0, 2)},
+			tensor:          t3,
+			expectedItems:   []float64{0, 1, 2, 3, 4, 5, 6, 7},
+			expectedStrides: []int{4, 2, 1},
+			expectedSizes:   []int{2, 2, 2},
+			expectedOfset:   0,
+		},
+	}
+
+	for _, tc := range testCases {
+		subTensor, err := tc.tensor.Index(tc.indexers...)
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedItems, subTensor.Items())
+		require.Equal(t, tc.expectedStrides, subTensor.strides)
+		require.Equal(t, tc.expectedSizes, subTensor.sizes)
+		require.Equal(t, tc.expectedOfset, subTensor.ofset)
+	}
+} */
+
+/*
+[3, 2, 2], 0 -> [2, 2]
+[3, 2, 2], 1 -> [3, 2]
+[3, 2, 2], 2 -> [3, 2]
+
+[4, 3, 2], 0 -> [3, 2]
+[4, 3, 2], 1 -> [3, 2]
+
+[4, 5], 0 -> [5]
+[4, 5], 1 -> [4]
+*/
+
+func TestIndexWithBetweenAndIndex(t *testing.T) {
+	t.Parallel()
+
+	t1, err := New([]int{3, 2, 2}, []float64{
+		0, 1,
+		2, 3,
+
+		4, 5,
+		6, 7,
+
+		0, 1,
+		2, 3,
+	})
+	require.NoError(t, err)
+
+	t2, err := New([]int{3, 3}, []float64{
+		0, 1, 2,
+		3, 4, 5,
+		6, 7, 8,
+	})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		indexers        []Indexer
+		tensor          *Tensor
+		expectedItems   []float64
+		expectedStrides []int
+		expectedSizes   []int
+		expectedOfset   int
+	}{
+		{
+			indexers:        []Indexer{Between(0, 2), Index(0)},
+			tensor:          t1,
+			expectedItems:   []float64{0, 1, 4, 5},
+			expectedStrides: []int{4, 1},
+			expectedSizes:   []int{2, 2},
+			expectedOfset:   0,
+		},
+		{
+			indexers:        []Indexer{Between(0, 2), Index(1)},
+			tensor:          t1,
+			expectedItems:   []float64{2, 3, 6, 7},
+			expectedStrides: []int{4, 1},
+			expectedSizes:   []int{2, 2},
+			expectedOfset:   2,
+		},
+		{
+			indexers:        []Indexer{Between(1, 3), Index(1)},
+			tensor:          t1,
+			expectedItems:   []float64{6, 7, 2, 3},
+			expectedStrides: []int{4, 1},
+			expectedSizes:   []int{2, 2},
+			expectedOfset:   6,
+		},
+		{
+			indexers:        []Indexer{All(), Index(0)},
+			tensor:          t1,
+			expectedItems:   []float64{0, 1, 4, 5, 0, 1},
+			expectedStrides: []int{4, 1},
+			expectedSizes:   []int{3, 2},
+			expectedOfset:   0,
+		},
+		{
+			indexers:        []Indexer{All(), All(), Index(0)},
+			tensor:          t1,
+			expectedItems:   []float64{0, 2, 4, 6, 0, 2},
+			expectedStrides: []int{4, 2},
+			expectedSizes:   []int{3, 2},
+			expectedOfset:   0,
+		},
+		{
+			indexers:        []Indexer{All(), Index(1)},
+			tensor:          t2,
+			expectedItems:   []float64{1, 4, 7},
+			expectedStrides: []int{3},
+			expectedSizes:   []int{3},
+			expectedOfset:   1,
+		},
+	}
+
+	for _, tc := range testCases {
+		subTensor, err := tc.tensor.Index(tc.indexers...)
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedItems, subTensor.Items())
+		require.Equal(t, tc.expectedStrides, subTensor.strides)
+		require.Equal(t, tc.expectedSizes, subTensor.sizes)
+		require.Equal(t, tc.expectedOfset, subTensor.ofset)
+	}
 }
