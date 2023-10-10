@@ -1,5 +1,9 @@
 package gosor
 
+import (
+	"fmt"
+)
+
 type Tensor struct {
 	strides []int
 	sizes   []int
@@ -7,60 +11,74 @@ type Tensor struct {
 	storage []float64
 }
 
-func (t *Tensor) Index(indexes ...int) *Tensor {
-	if len(indexes) != len(t.strides) {
-		panic("invalid tensor index")
+func New(sizes []int, storage []float64) (*Tensor, error) {
+	storageLen, strides := getStorageLenAndStridesFromSize(sizes)
+	if storageLen != len(storage) {
+		return nil, fmt.Errorf("wrong length of storage for sizes. Got: %d. Want: %d", len(storage), storageLen)
 	}
-
-	storageIndex := t.ofset
-	for i := 0; i < len(indexes); i++ {
-		storageIndex += indexes[i] * t.strides[i]
-	}
-
 	return &Tensor{
-		strides: []int{1},
-		sizes:   []int{1},
-		ofset:   storageIndex,
-		storage: t.storage,
-	}
+		strides: strides,
+		sizes:   sizes,
+		ofset:   0,
+		storage: storage,
+	}, nil
 }
 
-func (t *Tensor) SetIndex(indexes []int, value float64) {
-	if len(indexes) != len(t.strides) {
-		panic("invalid tensor index")
-	}
-
-	storageIndex := t.ofset
-	for i := 0; i < len(indexes); i++ {
-		storageIndex += indexes[i] * t.strides[i]
-	}
-	t.storage[storageIndex] = value
-}
-
-func (t *Tensor) Items() []float64 {
-	return t.storage[t.ofset:]
-}
-
-func (t *Tensor) Item() float64 {
-	return t.storage[t.ofset]
-}
-
-func Zeros(sizes ...int) *Tensor {
-	storageLen := 1
-	strides := make([]int, len(sizes))
-	for i := 0; i < len(sizes); i++ {
-		storageLen *= sizes[i]
-		if i == len(sizes)-1 {
-			strides[i] = 1
-			continue
-		}
-		strides[i] = sizes[i+1]
-	}
-
+func NewZeros(sizes ...int) *Tensor {
+	storageLen, strides := getStorageLenAndStridesFromSize(sizes)
 	return &Tensor{
 		strides: strides,
 		sizes:   sizes,
 		ofset:   0,
 		storage: make([]float64, storageLen),
 	}
+}
+
+func getStorageLenAndStridesFromSize(sizes []int) (int, []int) {
+	storageLen := 1
+	strides := make([]int, len(sizes))
+	for i := len(sizes) - 1; i >= 0; i-- {
+		storageLen *= sizes[i]
+		if i == len(sizes)-1 {
+			strides[i] = 1
+			continue
+		}
+		strides[i] = sizes[i+1] * strides[i+1]
+	}
+
+	return storageLen, strides
+}
+
+func (t *Tensor) Items() []float64 {
+	if len(t.sizes) != len(t.strides) {
+		panic("items on invalid tensor")
+	}
+
+	size := 1
+	for _, i := range t.sizes {
+		size *= i
+	}
+	items := make([]float64, size)
+
+	for i := 0; i < size; i++ {
+		index := t.ofset
+		v := i
+		for j := len(t.sizes) - 1; j >= 0; j-- {
+			dimensionIndex := v % t.sizes[j]
+			v /= t.sizes[j]
+			index += dimensionIndex * t.strides[j]
+		}
+
+		items[i] = t.storage[index]
+	}
+
+	return items
+}
+
+func (t *Tensor) Item() float64 {
+	return t.storage[t.ofset]
+}
+
+func (t *Tensor) ShallowCopy() *Tensor {
+	return &Tensor{strides: t.strides, sizes: t.sizes, ofset: t.ofset, storage: t.storage}
 }

@@ -6,16 +6,55 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTensorGettingIndex(t *testing.T) {
+func TestItems(t *testing.T) {
 	t.Parallel()
 
-	tensor := Zeros(3, 2)
-	tensor.storage[0] = 1
-	tensor.storage[1] = 2
-	tensor.storage[2] = 3
-	tensor.storage[5] = 7
-	require.Equal(t, 1., tensor.Index(0, 0).Item())
-	require.Equal(t, 2., tensor.Index(0, 1).Item())
-	require.Equal(t, 3., tensor.Index(1, 0).Item())
-	require.Equal(t, 7., tensor.Index(2, 1).Item())
+	var testCases = []struct {
+		tensor        *Tensor
+		expectedItems []float64
+	}{
+		{
+			&Tensor{
+				strides: []int{4, 1},
+				sizes:   []int{3, 2},
+				ofset:   2,
+				storage: []float64{
+					0, 1, 2, 3,
+					0, 1, 2, 3,
+					0, 1, 2, 3,
+				},
+			},
+			[]float64{2, 3, 2, 3, 2, 3},
+		},
+		{
+			&Tensor{
+				strides: []int{1},
+				sizes:   []int{3},
+				ofset:   4,
+				storage: []float64{
+					0, 1, 2, 3,
+					4, 5, 6, 7,
+					8, 9, 10, 11,
+				},
+			},
+			[]float64{4, 5, 6},
+		},
+		{
+			&Tensor{
+				strides: []int{4, 1},
+				sizes:   []int{2, 2},
+				ofset:   1,
+				storage: []float64{
+					0, 1, 2, 3,
+					4, 5, 6, 7,
+					8, 9, 10, 11,
+				},
+			},
+			[]float64{1, 2, 5, 6},
+		},
+	}
+
+	for _, tc := range testCases {
+		require.Equal(t, tc.expectedItems, tc.tensor.Items())
+	}
 }
