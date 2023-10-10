@@ -31,7 +31,7 @@ func TestTensorGet(t *testing.T) {
 	require.Equal(t, 7., tensor.Get(1, 1, 1))
 }
 
-/* func TestIndexWithIndex(t *testing.T) {
+func TestIndexWithIndex(t *testing.T) {
 	t.Parallel()
 
 	tensor, err := New([]int{2, 2}, []float64{0, 1, 2, 3})
@@ -134,19 +134,7 @@ func TestIndexWithBetween(t *testing.T) {
 		require.Equal(t, tc.expectedSizes, subTensor.sizes)
 		require.Equal(t, tc.expectedOfset, subTensor.ofset)
 	}
-} */
-
-/*
-[3, 2, 2], 0 -> [2, 2]
-[3, 2, 2], 1 -> [3, 2]
-[3, 2, 2], 2 -> [3, 2]
-
-[4, 3, 2], 0 -> [3, 2]
-[4, 3, 2], 1 -> [3, 2]
-
-[4, 5], 0 -> [5]
-[4, 5], 1 -> [4]
-*/
+}
 
 func TestIndexWithBetweenAndIndex(t *testing.T) {
 	t.Parallel()
