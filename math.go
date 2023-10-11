@@ -2,106 +2,13 @@ package gosor
 
 import "fmt"
 
-func AddW(mt1, mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
+func Add(t1, t2 *Tensor) (*Tensor, error) {
+	result, err := New(WithSize(t1.sizes...))
+	err = elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 + f2 })
 	if err != nil {
-		return WrapErr(err)
+		return nil, err
 	}
-
-	return Add(t1, t2)
-}
-func Add(t1, t2 *Tensor) *MaybeTensor {
-	result := NewZeros(t1.sizes...)
-	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 + f2 })
-	if err != nil {
-		return WrapErr(err)
-	}
-	return Wrap(result)
-}
-func (mt1 *MaybeTensor) Add(mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
-	if err != nil {
-		mt1.err = err
-		return mt1
-	}
-	err = t1.Add(t2)
-	mt1.err = err
-	return mt1
-}
-func (t1 *Tensor) Add(t2 *Tensor) error {
-	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 + f2 })
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func MulW(mt1, mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
-	if err != nil {
-		return WrapErr(err)
-	}
-
-	return Add(t1, t2)
-}
-func Mul(t1, t2 *Tensor) *MaybeTensor {
-	result := NewZeros(t1.sizes...)
-	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 * f2 })
-	if err != nil {
-		return WrapErr(err)
-	}
-	return Wrap(result)
-}
-func (mt1 *MaybeTensor) Mul(mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
-	if err != nil {
-		mt1.err = err
-		return mt1
-	}
-	err = t1.Add(t2)
-	mt1.err = err
-	return mt1
-}
-func (t1 *Tensor) Mul(t2 *Tensor) error {
-	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 * f2 })
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func SubW(mt1, mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
-	if err != nil {
-		return WrapErr(err)
-	}
-
-	return Add(t1, t2)
-}
-func Sub(t1, t2 *Tensor) *MaybeTensor {
-	result := NewZeros(t1.sizes...)
-	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 - f2 })
-	if err != nil {
-		return WrapErr(err)
-	}
-	return Wrap(result)
-}
-func (mt1 *MaybeTensor) Sub(mt2 *MaybeTensor) *MaybeTensor {
-	t1, t2, err := unwrapTwo(mt1, mt2)
-	if err != nil {
-		mt1.err = err
-		return mt1
-	}
-	err = t1.Add(t2)
-	mt1.err = err
-	return mt1
-}
-func (t1 *Tensor) Sub(t2 *Tensor) error {
-	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 - f2 })
-	if err != nil {
-		return err
-	}
-	return nil
+	return result, nil
 }
 
 func elementWiseOperation(t1, t2, result *Tensor, operation func(float64, float64) float64) error {

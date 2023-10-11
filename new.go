@@ -1,28 +1,57 @@
 package gosor
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func New(sizes []int, storage []float64) (*Tensor, error) {
-	storageLen, strides := getStorageLenAndStridesFromSize(sizes)
-	if storageLen != len(storage) {
-		return nil, fmt.Errorf("wrong length of storage for sizes. Got: %d. Want: %d", len(storage), storageLen)
-	}
-	return &Tensor{
-		strides: strides,
-		sizes:   sizes,
-		offset:  0,
-		storage: storage,
-	}, nil
+type newOptions struct {
+	size    []int
+	storage []float64
 }
 
-func NewZeros(sizes ...int) *Tensor {
-	storageLen, strides := getStorageLenAndStridesFromSize(sizes)
+type newOption func(*newOptions)
+
+func WithSize(size ...int) newOption {
+	return func(no *newOptions) {
+		no.size = size
+	}
+}
+
+func WithValues(s ...float64) newOption {
+	return func(no *newOptions) {
+		no.storage = s
+	}
+}
+
+func New(opts ...newOption) (*Tensor, error) {
+	var options newOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	if options.size == nil && options.storage == nil {
+		return nil, fmt.Errorf("%w: must have either/both of size or storage", ErrInvalidTensorCreation)
+	}
+
+	if options.size == nil {
+		options.size = []int{len(options.storage)}
+	}
+
+	storageLen, strides := getStorageLenAndStridesFromSize(options.size)
+	if options.storage == nil {
+		options.storage = make([]float64, storageLen)
+	}
+
+	if storageLen != len(options.storage) {
+		return nil, fmt.Errorf("wrong length of storage for sizes. Got: %d. Want: %d", len(options.storage), storageLen)
+	}
+
 	return &Tensor{
 		strides: strides,
-		sizes:   sizes,
+		sizes:   options.size,
 		offset:  0,
-		storage: make([]float64, storageLen),
-	}
+		storage: options.storage,
+	}, nil
 }
 
 func getStorageLenAndStridesFromSize(sizes []int) (int, []int) {

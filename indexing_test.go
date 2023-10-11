@@ -9,7 +9,8 @@ import (
 func TestTensorGet(t *testing.T) {
 	t.Parallel()
 
-	tensor := NewZeros(3, 2)
+	tensor, err := New(WithSize(3, 2))
+	require.NoError(t, err)
 	tensor.storage[0] = 1
 	tensor.storage[1] = 2
 	tensor.storage[2] = 3
@@ -19,7 +20,7 @@ func TestTensorGet(t *testing.T) {
 	require.Equal(t, 3., tensor.Get(1, 0))
 	require.Equal(t, 7., tensor.Get(2, 1))
 
-	tensor, err := New([]int{2, 2, 2}, []float64{0, 1, 2, 3, 4, 5, 6, 7})
+	tensor, err = New(WithSize(2, 2, 2), WithValues(0, 1, 2, 3, 4, 5, 6, 7))
 	require.NoError(t, err)
 	require.Equal(t, 0., tensor.Get(0, 0, 0))
 	require.Equal(t, 1., tensor.Get(0, 0, 1))
@@ -34,25 +35,25 @@ func TestTensorGet(t *testing.T) {
 func TestIndexWithIndex(t *testing.T) {
 	t.Parallel()
 
-	tensor, err := New([]int{2, 2}, []float64{0, 1, 2, 3})
+	tensor, err := New(WithSize(2, 2), WithValues(0, 1, 2, 3))
 	require.NoError(t, err)
 
-	subTensor, err := tensor.Index(Index(0)).Unwrap()
+	subTensor, err := tensor.Index(Index(0))
 	require.NoError(t, err)
 	require.Equal(t, []float64{0, 1}, subTensor.Items())
 
-	subTensor, err = tensor.Index(Index(1)).Unwrap()
+	subTensor, err = tensor.Index(Index(1))
 	require.NoError(t, err)
 	require.Equal(t, []float64{2, 3}, subTensor.Items())
 
-	tensor, err = New([]int{2, 2, 2}, []float64{0, 1, 2, 3, 4, 5, 6, 7})
+	tensor, err = New(WithSize(2, 2, 2), WithValues(0, 1, 2, 3, 4, 5, 6, 7))
 	require.NoError(t, err)
 
-	subTensor, err = tensor.Index(Index(0)).Unwrap()
+	subTensor, err = tensor.Index(Index(0))
 	require.NoError(t, err)
 	require.Equal(t, []float64{0, 1, 2, 3}, subTensor.Items())
 
-	subTensor, err = tensor.Index(Index(1)).Unwrap()
+	subTensor, err = tensor.Index(Index(1))
 	require.NoError(t, err)
 	require.Equal(t, []float64{4, 5, 6, 7}, subTensor.Items())
 
@@ -61,18 +62,18 @@ func TestIndexWithIndex(t *testing.T) {
 func TestIndexWithBetween(t *testing.T) {
 	t.Parallel()
 
-	t1, err := New([]int{5}, []float64{0, 1, 2, 3, 4})
+	t1, err := New(WithSize(5), WithValues(0, 1, 2, 3, 4))
 	require.NoError(t, err)
 
-	t2, err := New([]int{4, 2}, []float64{
+	t2, err := New(WithSize(4, 2), WithValues(
 		0, 1,
 		2, 3,
 		4, 5,
 		6, 7,
-	})
+	))
 	require.NoError(t, err)
 
-	t3, err := New([]int{3, 2, 2}, []float64{
+	t3, err := New(WithSize(3, 2, 2), WithValues(
 		0, 1,
 		2, 3,
 
@@ -81,7 +82,7 @@ func TestIndexWithBetween(t *testing.T) {
 
 		8, 9,
 		10, 11,
-	})
+	))
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -127,7 +128,7 @@ func TestIndexWithBetween(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		subTensor, err := tc.tensor.Index(tc.indexers...).Unwrap()
+		subTensor, err := tc.tensor.Index(tc.indexers...)
 		require.NoError(t, err)
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)
@@ -139,7 +140,7 @@ func TestIndexWithBetween(t *testing.T) {
 func TestIndexWithBetweenAndIndex(t *testing.T) {
 	t.Parallel()
 
-	t1, err := New([]int{3, 2, 2}, []float64{
+	t1, err := New(WithSize(3, 2, 2), WithValues(
 		0, 1,
 		2, 3,
 
@@ -148,14 +149,14 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 
 		0, 1,
 		2, 3,
-	})
+	))
 	require.NoError(t, err)
 
-	t2, err := New([]int{3, 3}, []float64{
+	t2, err := New(WithSize(3, 3), WithValues(
 		0, 1, 2,
 		3, 4, 5,
 		6, 7, 8,
-	})
+	))
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -217,7 +218,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		subTensor, err := tc.tensor.Index(tc.indexers...).Unwrap()
+		subTensor, err := tc.tensor.Index(tc.indexers...)
 		require.NoError(t, err)
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)

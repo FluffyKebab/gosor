@@ -49,5 +49,5 @@ func (t *Tensor) ShallowCopy() *Tensor {
 }
 
 func (t *Tensor) DeepCopy() (*Tensor, error) {
-	return New(t.sizes, t.Items())
+	return New(WithSize(t.sizes...), WithValues(t.Items()...))
 }

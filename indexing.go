@@ -94,7 +94,7 @@ func (b between) IndexIn(t *Tensor, dim int) (int, error) {
 	return dim + 1, nil
 }
 
-func (t *Tensor) Index(indexes ...Indexer) *MaybeTensor {
+func (t *Tensor) Index(indexes ...Indexer) (*Tensor, error) {
 	var err error
 
 	tensor := t.ShallowCopy()
@@ -102,11 +102,11 @@ func (t *Tensor) Index(indexes ...Indexer) *MaybeTensor {
 	for _, indexer := range indexes {
 		dim, err = indexer.IndexIn(tensor, dim)
 		if err != nil {
-			return WrapErr(err)
+			return nil, err
 		}
 	}
 
-	return Wrap(tensor)
+	return tensor, nil
 }
 
 func (t *Tensor) Get(indexes ...int) float64 {
