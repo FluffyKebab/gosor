@@ -2,19 +2,109 @@ package gosor
 
 import "fmt"
 
-func (result *Tensor) Add(t1, t2 *Tensor) error {
-	return result.elementWiseOperation(t1, t2, func(f1, f2 float64) float64 { return f1 + f2 })
+func AddW(mt1, mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		return WrapErr(err)
+	}
+
+	return Add(t1, t2)
+}
+func Add(t1, t2 *Tensor) *MaybeTensor {
+	result := NewZeros(t1.sizes...)
+	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 + f2 })
+	if err != nil {
+		return WrapErr(err)
+	}
+	return Wrap(result)
+}
+func (mt1 *MaybeTensor) Add(mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		mt1.err = err
+		return mt1
+	}
+	err = t1.Add(t2)
+	mt1.err = err
+	return mt1
+}
+func (t1 *Tensor) Add(t2 *Tensor) error {
+	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 + f2 })
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (result *Tensor) Min(t1, t2 *Tensor) error {
-	return result.elementWiseOperation(t1, t2, func(f1, f2 float64) float64 { return f1 + f2 })
+func MulW(mt1, mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		return WrapErr(err)
+	}
+
+	return Add(t1, t2)
+}
+func Mul(t1, t2 *Tensor) *MaybeTensor {
+	result := NewZeros(t1.sizes...)
+	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 * f2 })
+	if err != nil {
+		return WrapErr(err)
+	}
+	return Wrap(result)
+}
+func (mt1 *MaybeTensor) Mul(mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		mt1.err = err
+		return mt1
+	}
+	err = t1.Add(t2)
+	mt1.err = err
+	return mt1
+}
+func (t1 *Tensor) Mul(t2 *Tensor) error {
+	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 * f2 })
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (result *Tensor) Mul(t1, t2 *Tensor) error {
-	return result.elementWiseOperation(t1, t2, func(f1, f2 float64) float64 { return f1 * f2 })
+func SubW(mt1, mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		return WrapErr(err)
+	}
+
+	return Add(t1, t2)
+}
+func Sub(t1, t2 *Tensor) *MaybeTensor {
+	result := NewZeros(t1.sizes...)
+	err := elementWiseOperation(t1, t2, result, func(f1, f2 float64) float64 { return f1 - f2 })
+	if err != nil {
+		return WrapErr(err)
+	}
+	return Wrap(result)
+}
+func (mt1 *MaybeTensor) Sub(mt2 *MaybeTensor) *MaybeTensor {
+	t1, t2, err := unwrapTwo(mt1, mt2)
+	if err != nil {
+		mt1.err = err
+		return mt1
+	}
+	err = t1.Add(t2)
+	mt1.err = err
+	return mt1
+}
+func (t1 *Tensor) Sub(t2 *Tensor) error {
+	err := elementWiseOperation(t1, t2, t1, func(f1, f2 float64) float64 { return f1 - f2 })
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (result *Tensor) elementWiseOperation(t1, t2 *Tensor, operation func(float64, float64) float64) error {
+func elementWiseOperation(t1, t2, result *Tensor, operation func(float64, float64) float64) error {
 	if len(t1.sizes) != len(t2.sizes) || len(t1.sizes) != len(result.sizes) {
 		return fmt.Errorf("%w: element wise addition with tensors of different sizes", ErrUndefined)
 	}

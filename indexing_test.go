@@ -37,22 +37,22 @@ func TestIndexWithIndex(t *testing.T) {
 	tensor, err := New([]int{2, 2}, []float64{0, 1, 2, 3})
 	require.NoError(t, err)
 
-	subTensor, err := tensor.Index(Index(0))
+	subTensor, err := tensor.Index(Index(0)).Unwrap()
 	require.NoError(t, err)
 	require.Equal(t, []float64{0, 1}, subTensor.Items())
 
-	subTensor, err = tensor.Index(Index(1))
+	subTensor, err = tensor.Index(Index(1)).Unwrap()
 	require.NoError(t, err)
 	require.Equal(t, []float64{2, 3}, subTensor.Items())
 
 	tensor, err = New([]int{2, 2, 2}, []float64{0, 1, 2, 3, 4, 5, 6, 7})
 	require.NoError(t, err)
 
-	subTensor, err = tensor.Index(Index(0))
+	subTensor, err = tensor.Index(Index(0)).Unwrap()
 	require.NoError(t, err)
 	require.Equal(t, []float64{0, 1, 2, 3}, subTensor.Items())
 
-	subTensor, err = tensor.Index(Index(1))
+	subTensor, err = tensor.Index(Index(1)).Unwrap()
 	require.NoError(t, err)
 	require.Equal(t, []float64{4, 5, 6, 7}, subTensor.Items())
 
@@ -90,7 +90,7 @@ func TestIndexWithBetween(t *testing.T) {
 		expectedItems   []float64
 		expectedStrides []int
 		expectedSizes   []int
-		expectedOfset   int
+		expectedOffset  int
 	}{
 		{
 			indexers:        []Indexer{Between(0, 3)},
@@ -98,7 +98,7 @@ func TestIndexWithBetween(t *testing.T) {
 			expectedItems:   []float64{0, 1, 2},
 			expectedStrides: []int{1},
 			expectedSizes:   []int{3},
-			expectedOfset:   0,
+			expectedOffset:  0,
 		},
 		{
 			indexers:        []Indexer{Between(1, 2)},
@@ -106,7 +106,7 @@ func TestIndexWithBetween(t *testing.T) {
 			expectedItems:   []float64{2, 3},
 			expectedStrides: []int{2, 1},
 			expectedSizes:   []int{1, 2},
-			expectedOfset:   2,
+			expectedOffset:  2,
 		},
 		{
 			indexers:        []Indexer{Between(1, 3)},
@@ -114,7 +114,7 @@ func TestIndexWithBetween(t *testing.T) {
 			expectedItems:   []float64{2, 3, 4, 5},
 			expectedStrides: []int{2, 1},
 			expectedSizes:   []int{2, 2},
-			expectedOfset:   2,
+			expectedOffset:  2,
 		},
 		{
 			indexers:        []Indexer{Between(0, 2)},
@@ -122,17 +122,17 @@ func TestIndexWithBetween(t *testing.T) {
 			expectedItems:   []float64{0, 1, 2, 3, 4, 5, 6, 7},
 			expectedStrides: []int{4, 2, 1},
 			expectedSizes:   []int{2, 2, 2},
-			expectedOfset:   0,
+			expectedOffset:  0,
 		},
 	}
 
 	for _, tc := range testCases {
-		subTensor, err := tc.tensor.Index(tc.indexers...)
+		subTensor, err := tc.tensor.Index(tc.indexers...).Unwrap()
 		require.NoError(t, err)
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)
 		require.Equal(t, tc.expectedSizes, subTensor.sizes)
-		require.Equal(t, tc.expectedOfset, subTensor.offset)
+		require.Equal(t, tc.expectedOffset, subTensor.offset)
 	}
 }
 
@@ -164,7 +164,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 		expectedItems   []float64
 		expectedStrides []int
 		expectedSizes   []int
-		expectedOfset   int
+		expectedOffset  int
 	}{
 		{
 			indexers:        []Indexer{Between(0, 2), Index(0)},
@@ -172,7 +172,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{0, 1, 4, 5},
 			expectedStrides: []int{4, 1},
 			expectedSizes:   []int{2, 2},
-			expectedOfset:   0,
+			expectedOffset:  0,
 		},
 		{
 			indexers:        []Indexer{Between(0, 2), Index(1)},
@@ -180,7 +180,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{2, 3, 6, 7},
 			expectedStrides: []int{4, 1},
 			expectedSizes:   []int{2, 2},
-			expectedOfset:   2,
+			expectedOffset:  2,
 		},
 		{
 			indexers:        []Indexer{Between(1, 3), Index(1)},
@@ -188,7 +188,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{6, 7, 2, 3},
 			expectedStrides: []int{4, 1},
 			expectedSizes:   []int{2, 2},
-			expectedOfset:   6,
+			expectedOffset:  6,
 		},
 		{
 			indexers:        []Indexer{All(), Index(0)},
@@ -196,7 +196,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{0, 1, 4, 5, 0, 1},
 			expectedStrides: []int{4, 1},
 			expectedSizes:   []int{3, 2},
-			expectedOfset:   0,
+			expectedOffset:  0,
 		},
 		{
 			indexers:        []Indexer{All(), All(), Index(0)},
@@ -204,7 +204,7 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{0, 2, 4, 6, 0, 2},
 			expectedStrides: []int{4, 2},
 			expectedSizes:   []int{3, 2},
-			expectedOfset:   0,
+			expectedOffset:  0,
 		},
 		{
 			indexers:        []Indexer{All(), Index(1)},
@@ -212,16 +212,16 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 			expectedItems:   []float64{1, 4, 7},
 			expectedStrides: []int{3},
 			expectedSizes:   []int{3},
-			expectedOfset:   1,
+			expectedOffset:  1,
 		},
 	}
 
 	for _, tc := range testCases {
-		subTensor, err := tc.tensor.Index(tc.indexers...)
+		subTensor, err := tc.tensor.Index(tc.indexers...).Unwrap()
 		require.NoError(t, err)
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)
 		require.Equal(t, tc.expectedSizes, subTensor.sizes)
-		require.Equal(t, tc.expectedOfset, subTensor.offset)
+		require.Equal(t, tc.expectedOffset, subTensor.offset)
 	}
 }

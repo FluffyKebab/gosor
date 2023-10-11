@@ -45,10 +45,7 @@ func TestAdd(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	res := NewZeros(3, 2, 3)
-
-	err = res.Add(t1, t2)
+	res, err := Add(t1, t2).Unwrap()
 	require.NoError(t, err)
-
 	require.Equal(t, expectedRes.Items(), res.Items())
 }
