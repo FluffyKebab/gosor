@@ -5,12 +5,15 @@ type MaybeTensor struct {
 	err error
 }
 
-func (m *MaybeTensor) Do(f func(*Tensor, *Tensor) (*Tensor, error), t *Tensor) *MaybeTensor {
-	if m.err != nil {
-		return m
+func (m1 *MaybeTensor) Do(f func(*Tensor, *Tensor) (*Tensor, error), m2 *MaybeTensor) *MaybeTensor {
+	if m1.err != nil {
+		return m1
+	}
+	if m2.err != nil {
+		return m2
 	}
 
-	result, err := f(m.t, t)
+	result, err := f(m1.t, m2.t)
 	return &MaybeTensor{t: result, err: err}
 }
 
@@ -20,6 +23,15 @@ func (m *MaybeTensor) DoT(f func(*Tensor) (*Tensor, error)) *MaybeTensor {
 	}
 
 	result, err := f(m.t)
+	return &MaybeTensor{t: result, err: err}
+}
+
+func (m *MaybeTensor) Index(indexes ...Indexer) *MaybeTensor {
+	if m.err != nil {
+		return m
+	}
+
+	result, err := m.t.Index(indexes...)
 	return &MaybeTensor{t: result, err: err}
 }
 
