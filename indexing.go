@@ -32,12 +32,12 @@ func (i index) IndexIn(t *Tensor, dim int) (int, error) {
 		return 0, ErrIndexOutOfBounds
 	}
 
-	t.ofset += t.strides[dim] * i.pos
+	t.offset += t.strides[dim] * i.pos
 
 	if len(t.sizes) == 1 {
 		t.sizes = []int{1}
 		t.strides = []int{1}
-		return dim, nil
+		return 0, nil
 	}
 
 	newSize := make([]int, 0, len(t.sizes)-1)
@@ -52,7 +52,7 @@ func (i index) IndexIn(t *Tensor, dim int) (int, error) {
 
 	t.sizes = newSize
 	t.strides = newStride
-	return dim, nil
+	return 0, nil
 }
 
 type between struct {
@@ -81,7 +81,7 @@ func (b between) IndexIn(t *Tensor, dim int) (int, error) {
 		return 0, fmt.Errorf("%w: end value in between", ErrIndexOutOfBounds)
 	}
 
-	t.ofset += b.start * t.strides[0]
+	t.offset += b.start * t.strides[0]
 
 	if b.start > b.end {
 		if b.end == -1 {
@@ -114,7 +114,7 @@ func (t *Tensor) Get(indexes ...int) float64 {
 		panic("get invalid tensor index")
 	}
 
-	storageIndex := t.ofset
+	storageIndex := t.offset
 	for i := 0; i < len(indexes); i++ {
 		storageIndex += indexes[i] * t.strides[i]
 	}
@@ -127,7 +127,7 @@ func (t *Tensor) Set(indexes []int, value float64) {
 		panic("set invalid tensor index")
 	}
 
-	storageIndex := t.ofset
+	storageIndex := t.offset
 	for i := 0; i < len(indexes); i++ {
 		storageIndex += indexes[i] * t.strides[i]
 	}

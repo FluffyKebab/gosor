@@ -17,7 +17,7 @@ func TestItems(t *testing.T) {
 			&Tensor{
 				strides: []int{4, 1},
 				sizes:   []int{3, 2},
-				ofset:   2,
+				offset:  2,
 				storage: []float64{
 					0, 1, 2, 3,
 					0, 1, 2, 3,
@@ -30,7 +30,7 @@ func TestItems(t *testing.T) {
 			&Tensor{
 				strides: []int{1},
 				sizes:   []int{3},
-				ofset:   4,
+				offset:  4,
 				storage: []float64{
 					0, 1, 2, 3,
 					4, 5, 6, 7,
@@ -43,7 +43,7 @@ func TestItems(t *testing.T) {
 			&Tensor{
 				strides: []int{4, 1},
 				sizes:   []int{2, 2},
-				ofset:   1,
+				offset:  1,
 				storage: []float64{
 					0, 1, 2, 3,
 					4, 5, 6, 7,

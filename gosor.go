@@ -7,7 +7,7 @@ import (
 type Tensor struct {
 	strides []int
 	sizes   []int
-	ofset   int
+	offset  int
 	storage []float64
 }
 
@@ -19,7 +19,7 @@ func New(sizes []int, storage []float64) (*Tensor, error) {
 	return &Tensor{
 		strides: strides,
 		sizes:   sizes,
-		ofset:   0,
+		offset:  0,
 		storage: storage,
 	}, nil
 }
@@ -29,7 +29,7 @@ func NewZeros(sizes ...int) *Tensor {
 	return &Tensor{
 		strides: strides,
 		sizes:   sizes,
-		ofset:   0,
+		offset:  0,
 		storage: make([]float64, storageLen),
 	}
 }
@@ -61,7 +61,7 @@ func (t *Tensor) Items() []float64 {
 	items := make([]float64, size)
 
 	for i := 0; i < size; i++ {
-		index := t.ofset
+		index := t.offset
 		v := i
 		for j := len(t.sizes) - 1; j >= 0; j-- {
 			dimensionIndex := v % t.sizes[j]
@@ -76,7 +76,7 @@ func (t *Tensor) Items() []float64 {
 }
 
 func (t *Tensor) Item() float64 {
-	return t.storage[t.ofset]
+	return t.storage[t.offset]
 }
 
 // ShallowCopy copies everything except the underling storage of the tensor.
@@ -87,5 +87,5 @@ func (t *Tensor) ShallowCopy() *Tensor {
 	sizes := make([]int, len(t.sizes))
 	copy(sizes, t.sizes)
 
-	return &Tensor{strides: strides, sizes: sizes, ofset: t.ofset, storage: t.storage}
+	return &Tensor{strides: strides, sizes: sizes, offset: t.offset, storage: t.storage}
 }

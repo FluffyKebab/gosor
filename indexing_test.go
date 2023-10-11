@@ -132,7 +132,7 @@ func TestIndexWithBetween(t *testing.T) {
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)
 		require.Equal(t, tc.expectedSizes, subTensor.sizes)
-		require.Equal(t, tc.expectedOfset, subTensor.ofset)
+		require.Equal(t, tc.expectedOfset, subTensor.offset)
 	}
 }
 
@@ -222,6 +222,6 @@ func TestIndexWithBetweenAndIndex(t *testing.T) {
 		require.Equal(t, tc.expectedItems, subTensor.Items())
 		require.Equal(t, tc.expectedStrides, subTensor.strides)
 		require.Equal(t, tc.expectedSizes, subTensor.sizes)
-		require.Equal(t, tc.expectedOfset, subTensor.ofset)
+		require.Equal(t, tc.expectedOfset, subTensor.offset)
 	}
 }
