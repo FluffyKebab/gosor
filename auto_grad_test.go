@@ -25,3 +25,35 @@ func TestAutoGradAdd(t *testing.T) {
 	require.Equal(t, []float64{1}, b.MustValue().gradient.Items())
 	require.Equal(t, []float64{1}, a.MustValue().gradient.Items())
 }
+
+func TestAutoGradSub(t *testing.T) {
+	t.Parallel()
+
+	a := Wrap(New(WithValues(4)))
+	b := Wrap(New(WithValues(2)))
+
+	res, err := a.Do(Sub, b).Value()
+	require.NoError(t, err)
+
+	err = res.Backward(nil)
+	require.NoError(t, err)
+
+	require.Equal(t, []float64{2}, res.Items())
+	require.Equal(t, []float64{1}, a.MustValue().gradient.Items())
+	require.Equal(t, []float64{-1}, b.MustValue().gradient.Items())
+}
+
+func TestAutoGradPos(t *testing.T) {
+	t.Parallel()
+
+	a := Wrap(New(WithValues(4)))
+	b := Wrap(New(WithValues(2)))
+
+	res, err := a.Do(Pow, b).Value()
+	require.NoError(t, err)
+	require.Equal(t, []float64{16}, res.Items())
+
+	err = res.Backward(nil)
+	require.NoError(t, err)
+	require.Equal(t, []float64{8}, a.MustValue().gradient.Items())
+}

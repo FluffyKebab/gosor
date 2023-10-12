@@ -13,8 +13,22 @@ func (m1 *MaybeTensor) Do(f func(*Tensor, *Tensor) (*Tensor, error), m2 *MaybeTe
 		return m2
 	}
 
-	result, err := f(m1.t, m2.t)
-	return &MaybeTensor{t: result, err: err}
+	return Wrap(f(m1.t, m2.t))
+}
+
+func (m1 *MaybeTensor) DoInto(
+	result *MaybeTensor,
+	f func(*Tensor, *Tensor, *Tensor) (*Tensor, error),
+	m2 *MaybeTensor,
+) *MaybeTensor {
+	if m1.err != nil {
+		return m1
+	}
+	if m2.err != nil {
+		return nil
+	}
+
+	return Wrap(f(result.t, m1.t, m2.t))
 }
 
 func (m *MaybeTensor) DoT(f func(*Tensor) (*Tensor, error)) *MaybeTensor {
@@ -22,8 +36,7 @@ func (m *MaybeTensor) DoT(f func(*Tensor) (*Tensor, error)) *MaybeTensor {
 		return m
 	}
 
-	result, err := f(m.t)
-	return &MaybeTensor{t: result, err: err}
+	return Wrap(f(m.t))
 }
 
 func (m *MaybeTensor) Index(indexes ...Indexer) *MaybeTensor {
@@ -31,8 +44,7 @@ func (m *MaybeTensor) Index(indexes ...Indexer) *MaybeTensor {
 		return m
 	}
 
-	result, err := m.t.Index(indexes...)
-	return &MaybeTensor{t: result, err: err}
+	return Wrap(m.t.Index(indexes...))
 }
 
 func (t *MaybeTensor) Value() (*Tensor, error) {
@@ -47,6 +59,13 @@ func (t *MaybeTensor) MustValue() *Tensor {
 		panic(t.err.Error())
 	}
 	return t.t
+}
+
+func (t *MaybeTensor) String() string {
+	if t.err != nil {
+		return t.err.Error()
+	}
+	return t.t.String()
 }
 
 func Wrap(t *Tensor, err error) *MaybeTensor {

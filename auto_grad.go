@@ -8,6 +8,17 @@ type GradientTracker struct {
 	gradFunc func() error
 }
 
+func (g *GradientTracker) Gradient() (*Tensor, error) {
+	if g.gradient == nil {
+		return nil, fmt.Errorf("gradient no calculated")
+	}
+	return g.gradient, nil
+}
+
+func (g *GradientTracker) ResetGradient() {
+	g.gradient = nil
+}
+
 func (g *GradientTracker) Backward(l *Tensor) error {
 	if g == nil {
 		return fmt.Errorf("backward on tensor without gradient tracker")
@@ -32,6 +43,7 @@ func (g *GradientTracker) Backward(l *Tensor) error {
 				buildTopo(child)
 			}
 		}
+		n.children = nil
 		nodes = append(nodes, n)
 	}
 	buildTopo(g)
@@ -53,4 +65,13 @@ func (g *GradientTracker) Backward(l *Tensor) error {
 	}
 
 	return nil
+}
+
+func addGradientTracker(res, t1, t2 *Tensor, gradFunc func() error) {
+	if res.isNotLeaf && (res.gradFunc == nil && t1.GradientTracker != nil || t2.GradientTracker != nil) {
+		res.GradientTracker = &GradientTracker{
+			children: []*GradientTracker{t1.GradientTracker, t2.GradientTracker},
+			gradFunc: gradFunc,
+		}
+	}
 }

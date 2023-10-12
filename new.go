@@ -5,8 +5,9 @@ import (
 )
 
 type newOptions struct {
-	size    []int
-	storage []float64
+	size      []int
+	storage   []float64
+	isNotLeaf bool
 }
 
 type newOption func(*newOptions)
@@ -20,6 +21,12 @@ func WithSize(size ...int) newOption {
 func WithValues(s ...float64) newOption {
 	return func(no *newOptions) {
 		no.storage = s
+	}
+}
+
+func withIsNotLeaf() newOption {
+	return func(no *newOptions) {
+		no.isNotLeaf = true
 	}
 }
 
@@ -52,6 +59,7 @@ func New(opts ...newOption) (*Tensor, error) {
 		sizes:           options.size,
 		offset:          0,
 		storage:         options.storage,
+		isNotLeaf:       options.isNotLeaf,
 	}, nil
 }
 

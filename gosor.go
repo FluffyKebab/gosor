@@ -1,11 +1,14 @@
 package gosor
 
+import "fmt"
+
 type Tensor struct {
 	*GradientTracker
-	storage []float64
-	strides []int
-	sizes   []int
-	offset  int
+	storage   []float64
+	strides   []int
+	sizes     []int
+	offset    int
+	isNotLeaf bool
 }
 
 func (t *Tensor) Items() []float64 {
@@ -54,4 +57,21 @@ func (t *Tensor) ShallowCopy() *Tensor {
 
 func (t *Tensor) DeepCopy() (*Tensor, error) {
 	return New(WithSize(t.sizes...), WithValues(t.Items()...))
+}
+
+func (t *Tensor) String() string {
+	r := "tensor["
+	for i := 0; i < len(t.sizes); i++ {
+		r += fmt.Sprint(t.sizes[i])
+		if i+1 != len(t.sizes) {
+			r += "*"
+		}
+	}
+	r += "]{ "
+
+	for _, item := range t.Items() {
+		r += fmt.Sprint(item, " ")
+	}
+
+	return r + "}"
 }
