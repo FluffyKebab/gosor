@@ -42,6 +42,13 @@ func (t *MaybeTensor) Value() (*Tensor, error) {
 	return t.t, nil
 }
 
+func (t *MaybeTensor) MustValue() *Tensor {
+	if t.err != nil {
+		panic(t.err.Error())
+	}
+	return t.t
+}
+
 func Wrap(t *Tensor, err error) *MaybeTensor {
 	return &MaybeTensor{
 		t:   t,

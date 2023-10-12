@@ -47,10 +47,11 @@ func New(opts ...newOption) (*Tensor, error) {
 	}
 
 	return &Tensor{
-		strides: strides,
-		sizes:   options.size,
-		offset:  0,
-		storage: options.storage,
+		GradientTracker: &GradientTracker{},
+		strides:         strides,
+		sizes:           options.size,
+		offset:          0,
+		storage:         options.storage,
 	}, nil
 }
 

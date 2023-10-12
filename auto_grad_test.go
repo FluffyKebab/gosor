@@ -1,21 +1,27 @@
 package gosor
 
-/* func TestAutoGrad(t *testing.T) {
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestAutoGradAdd(t *testing.T) {
 	t.Parallel()
 
-	input, err := New([]int{3}, []float64{1, 2, 3})
+	a := Wrap(New(WithValues(2)))
+	b := Wrap(New(WithValues(3)))
+	c := Wrap(New(WithValues(9)))
+
+	res, err := a.Do(Add, b).Do(Add, c).Value()
+	require.NoError(t, err)
+	require.Equal(t, 14., res.Item())
+
+	err = res.Backward(nil)
 	require.NoError(t, err)
 
-	bias, err := New([]int{3}, []float64{1, 2, 3})
-	require.NoError(t, err)
-
-	desiredOutput, err := New([]int{3}, []float64{5, 0, 2})
-	require.NoError(t, err)
-
-
-} */
-
-/*
-output, err := gosor.Dot(inputs, weights).Add(bias).Map(gosor.Relu).Unwrap()
-
-*/
+	require.Equal(t, []float64{1}, res.gradient.Items())
+	require.Equal(t, []float64{1}, c.MustValue().gradient.Items())
+	require.Equal(t, []float64{1}, b.MustValue().gradient.Items())
+	require.Equal(t, []float64{1}, a.MustValue().gradient.Items())
+}

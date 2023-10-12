@@ -1,6 +1,7 @@
 package gosor
 
 type Tensor struct {
+	*GradientTracker
 	storage []float64
 	strides []int
 	sizes   []int
@@ -8,6 +9,9 @@ type Tensor struct {
 }
 
 func (t *Tensor) Items() []float64 {
+	if t == nil {
+		panic("items on nil tensor")
+	}
 	if len(t.sizes) != len(t.strides) {
 		panic("items on invalid tensor")
 	}
