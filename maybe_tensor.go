@@ -47,6 +47,14 @@ func (m *MaybeTensor) Index(indexes ...Indexer) *MaybeTensor {
 	return Wrap(m.t.Index(indexes...))
 }
 
+func (m *MaybeTensor) Gradient() *MaybeTensor {
+	if m.err != nil {
+		return m
+	}
+
+	return Wrap(m.t.Gradient())
+}
+
 func (t *MaybeTensor) Value() (*Tensor, error) {
 	if t.err != nil {
 		return nil, t.err
