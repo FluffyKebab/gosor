@@ -141,7 +141,10 @@ func elementWiseOperationInto(
 	}
 
 	for i := 0; i < length; i++ {
-		result.storage[result.getStorageIndex(i)] = operation(t1.storage[t1.getStorageIndex(i)], t2.storage[t2.getStorageIndex(i)])
+		result.storage[result.getStorageIndex(i)] = operation(
+			t1.storage[t1.getStorageIndex(i)],
+			t2.storage[t2.getStorageIndex(i)],
+		)
 	}
 
 	return result, nil

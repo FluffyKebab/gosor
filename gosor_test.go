@@ -69,3 +69,23 @@ func TestMap(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []float64{2, 4, 6, 8, 10, 12, 14, 16, 18, 20}, res.Items())
 }
+
+func TestSum(t *testing.T) {
+	t.Parallel()
+
+	var testCases = []struct {
+		t             *MaybeTensor
+		expectedItems []float64
+	}{
+		{
+			t:             Wrap(New(WithRange(0, 10, 1), WithSize(2, 5))),
+			expectedItems: []float64{5, 7, 9, 11, 13},
+		},
+	}
+
+	for _, tc := range testCases {
+		res, err := tc.t.DoT(Sum).Value()
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedItems, res.Items())
+	}
+}

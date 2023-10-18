@@ -17,16 +17,22 @@ func run() error {
 	ys := xs.Map(func(x float64) float64 {
 		return 2*x + 4
 	})
-	_ = ys
 
 	a := g.Wrap(g.New(g.WithValues(-1)))
 	b := g.Wrap(g.New(g.WithValues(1)))
 	trainingRate := g.Wrap(g.New(g.WithValues(0.1)))
 
-	fmt.Println("training for function: 2x + 4")
+	fmt.Println("training for function: f(x) = 2x + 4")
 
 	for i := 0; i < 100; i++ {
-		loss, err := xs.Do(g.Mul, a).Do(g.Add, b). /* .Do(g.MSE, ys) */ Value()
+		loss, err := xs.
+			Do(g.Mul, a).
+			Do(g.Add, b).
+			Do(g.Sub, ys).
+			DoT(g.Square).
+			DoT(g.Sum).
+			Do(g.Div, g.Wrap(g.New(g.WithValues(float64(ys.MustValue().Len()))))).
+			Value()
 		if err != nil {
 			return fmt.Errorf("error training: %w", err)
 		}
@@ -43,7 +49,6 @@ func run() error {
 		b.MustValue().ResetGradient()
 	}
 
-	fmt.Println()
-	fmt.Println("result loss: ", xs.Do(g.Mul, a).Do(g.Add, b))
+	fmt.Printf("result: f(x) = %fx + %f", a.MustValue().Item(), b.MustValue().Item())
 	return nil
 }
