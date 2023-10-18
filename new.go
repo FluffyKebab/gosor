@@ -5,9 +5,10 @@ import (
 )
 
 type newOptions struct {
-	size      []int
-	storage   []float64
-	isNotLeaf bool
+	size           []int
+	storage        []float64
+	isNotLeaf      bool
+	storageCreator func() ([]float64, error)
 }
 
 type newOption func(*newOptions)
@@ -24,20 +25,41 @@ func WithValues(s ...float64) newOption {
 	}
 }
 
+func WithRange(start, end, step float64) newOption {
+	return func(no *newOptions) {
+		no.storageCreator = func() ([]float64, error) {
+			i := start
+			res := make([]float64, 0, int((end-start)/step))
+			for i < end {
+				res = append(res, i)
+				i += step
+			}
+			return res, nil
+		}
+	}
+}
+
 func withIsNotLeaf() newOption {
 	return func(no *newOptions) {
 		no.isNotLeaf = true
 	}
 }
 
-func New(opts ...newOption) (*Tensor, error) {
+func New(opts ...newOption) (t *Tensor, err error) {
 	var options newOptions
 	for _, opt := range opts {
 		opt(&options)
 	}
 
+	if options.storageCreator != nil {
+		options.storage, err = options.storageCreator()
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidTensorCreation, err)
+		}
+	}
+
 	if options.size == nil && options.storage == nil {
-		return nil, fmt.Errorf("%w: must have either/both of size or storage", ErrInvalidTensorCreation)
+		return nil, fmt.Errorf("%w: must specify at least one of size or storage values", ErrInvalidTensorCreation)
 	}
 
 	if options.size == nil {
