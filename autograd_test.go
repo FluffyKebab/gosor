@@ -43,7 +43,7 @@ func TestAutoGradSub(t *testing.T) {
 	require.Equal(t, []float64{-1}, b.MustValue().gradient.Items())
 }
 
-func TestAutoGradPos(t *testing.T) {
+func TestAutoGradPow(t *testing.T) {
 	t.Parallel()
 
 	a := Wrap(New(WithValues(4)))

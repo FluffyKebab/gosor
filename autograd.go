@@ -2,15 +2,17 @@ package gosor
 
 import "fmt"
 
+type GradFunc func() ([]*Tensor, error)
+
 type GradientTracker struct {
 	children []*GradientTracker
 	gradient *Tensor
-	gradFunc func() error
+	gradFunc GradFunc
 }
 
 func (g *GradientTracker) Gradient() (*Tensor, error) {
 	if g.gradient == nil {
-		return nil, fmt.Errorf("gradient no calculated")
+		return nil, fmt.Errorf("gradient not calculated")
 	}
 	return g.gradient, nil
 }
@@ -19,56 +21,57 @@ func (g *GradientTracker) ResetGradient() {
 	g.gradient = nil
 }
 
-func (g *GradientTracker) Backward(l *Tensor) error {
-	if g == nil {
-		return fmt.Errorf("backward on tensor without gradient tracker")
+func (g *GradientTracker) Backward(previousGradient *Tensor) (err error) {
+	if previousGradient == nil {
+		previousGradient = Wrap(New(WithValues(1))).MustValue()
 	}
+	fmt.Println("doing backward with prev grad: ", previousGradient)
 
-	// Topological sort of the graph.
-	visited := make(map[*GradientTracker]bool)
-	nodes := make([]*GradientTracker, 0)
-
-	var buildTopo func(n *GradientTracker)
-	buildTopo = func(n *GradientTracker) {
-		if n == nil {
-			return
-		}
-		if _, ok := visited[n]; ok {
-			return
-		}
-
-		visited[n] = true
-		for _, child := range n.children {
-			if child != nil {
-				buildTopo(child)
-			}
-		}
-		n.children = nil
-		nodes = append(nodes, n)
-	}
-	buildTopo(g)
-
-	// Make sure gradient of the root node is set.
-	g.gradient = l
 	if g.gradient == nil {
-		g.gradient, _ = New(WithValues(1))
+		g.gradient, err = New(WithSize(previousGradient.sizes...))
+		if err != nil {
+			return err
+		}
 	}
 
-	// Go backwards and calculate the gradients.
-	for i := len(nodes) - 1; i >= 0; i-- {
-		if nodes[i].gradFunc != nil {
-			err := nodes[i].gradFunc()
-			if err != nil {
-				return err
-			}
+	_, err = AddInto(g.gradient, g.gradient, previousGradient)
+	if err != nil {
+		return err
+	}
+
+	if g.gradFunc == nil {
+		return nil
+	}
+	localGradients, err := g.gradFunc()
+	if err != nil {
+		return fmt.Errorf("calculating local gradient: %w", err)
+	}
+	if len(localGradients) != len(g.children) {
+		return fmt.Errorf("wrong amount tensors returned from grad func")
+	}
+
+	globalGradient := localGradients
+	for _, gradient := range globalGradient {
+		if gradient == nil {
+			continue
+		}
+		_, err := MulInto(gradient, gradient, previousGradient)
+		if err != nil {
+			return err
+		}
+	}
+
+	for i := 0; i < len(localGradients); i++ {
+		if globalGradient[i] != nil {
+			g.children[i].Backward(globalGradient[i])
 		}
 	}
 
 	return nil
 }
 
-func addGradientTracker(res, t1, t2 *Tensor, gradFunc func() error) {
-	if res.isNotLeaf && (res.gradFunc == nil && t1.GradientTracker != nil || t2.GradientTracker != nil) {
+func addGradientTracker(res, t1, t2 *Tensor, gradFunc GradFunc) {
+	if res.isNotLeaf && (res.gradFunc == nil && (t1.GradientTracker != nil || t2.GradientTracker != nil)) {
 		res.GradientTracker = &GradientTracker{
 			children: []*GradientTracker{t1.GradientTracker, t2.GradientTracker},
 			gradFunc: gradFunc,

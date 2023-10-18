@@ -55,14 +55,14 @@ func MulInto(result, t1, t2 *Tensor) (*Tensor, error) {
 		return nil, err
 	}
 
-	addAddGradientTrackerToRes(result, t1, t2)
+	addMulGradientTrackerToRes(result, t1, t2)
 	return result, nil
 }
 
 // Div allocates memory for a result tensor and does element wise division
 // into the result tensor using t1 and t2.
 func Div(t1, t2 *Tensor) (*Tensor, error) {
-	return MulInto(nil, t1, t2)
+	return DivInto(nil, t1, t2)
 }
 
 // DivInto does element wise division into the result tensor. If the
@@ -110,6 +110,9 @@ func elementWiseOperationInto(
 	t2 *Tensor,
 	operation func(float64, float64) float64,
 ) (t *Tensor, err error) {
+	if t1 == nil || t2 == nil {
+		return nil, fmt.Errorf("%w: nil tensor", ErrInvalidTensor)
+	}
 	if len(t1.sizes) == 0 || len(t2.sizes) == 0 {
 		return nil, ErrInvalidTensor
 	}

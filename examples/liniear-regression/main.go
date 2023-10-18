@@ -31,7 +31,9 @@ func run() error {
 			Do(g.Sub, ys).
 			DoT(g.Square).
 			DoT(g.Sum).
-			Do(g.Div, g.Wrap(g.New(g.WithValues(float64(ys.MustValue().Len()))))).
+			Do(g.Div, g.Wrap(g.New(g.WithValues(float64(
+				ys.MustValue().Len(),
+			))))).
 			Value()
 		if err != nil {
 			return fmt.Errorf("error training: %w", err)
