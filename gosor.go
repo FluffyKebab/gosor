@@ -75,3 +75,17 @@ func (t *Tensor) String() string {
 
 	return r + "}"
 }
+
+func Map(t *Tensor, f func(f float64) float64) (*Tensor, error) {
+	size := 1
+	for _, i := range t.sizes {
+		size *= i
+	}
+	storage := make([]float64, size)
+
+	for i := 0; i < len(storage); i++ {
+		storage[i] = f(t.storage[t.getStorageIndex(i)])
+	}
+
+	return New(withIsNotLeaf(), WithSize(t.sizes...), WithValues(storage...))
+}

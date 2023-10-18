@@ -55,6 +55,13 @@ func (m *MaybeTensor) Gradient() *MaybeTensor {
 	return Wrap(m.t.Gradient())
 }
 
+func (m *MaybeTensor) Map(f func(float64) float64) *MaybeTensor {
+	if m.err != nil {
+		return m
+	}
+	return Wrap(Map(m.t, f))
+}
+
 func (t *MaybeTensor) Value() (*Tensor, error) {
 	if t.err != nil {
 		return nil, t.err

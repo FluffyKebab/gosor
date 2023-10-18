@@ -58,3 +58,14 @@ func TestItems(t *testing.T) {
 		require.Equal(t, tc.expectedItems, tc.tensor.Items())
 	}
 }
+
+func TestMap(t *testing.T) {
+	t.Parallel()
+
+	tensor := Wrap(New(WithRange(0, 10, 1)))
+	res, err := tensor.Map(func(f float64) float64 {
+		return f*2 + 2
+	}).Value()
+	require.NoError(t, err)
+	require.Equal(t, []float64{2, 4, 6, 8, 10, 12, 14, 16, 18, 20}, res.Items())
+}

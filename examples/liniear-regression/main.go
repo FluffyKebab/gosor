@@ -1,20 +1,23 @@
 package main
 
-/* func main() {
+import (
+	"fmt"
+
+	g "github.com/FluffyKebab/gosor"
+)
+
+func main() {
 	if err := run(); err != nil {
 		panic(err)
 	}
 }
 
 func run() error {
-	xs, err := g.New(g.WithRange(0, 10, 0.1))
-	if err != nil {
-		return err
-	}
-	ys := g.Wrap(g.New(
-		g.WithBacking(func(x float64) float64 { return x*2.0 + 4 }),
-		g.WithSize(xs.LenItems()),
-	))
+	xs := g.Wrap(g.New(g.WithRange(0, 10, 0.1)))
+	ys := xs.Map(func(x float64) float64 {
+		return 2*x + 4
+	})
+	_ = ys
 
 	a := g.Wrap(g.New(g.WithValues(-1)))
 	b := g.Wrap(g.New(g.WithValues(1)))
@@ -23,7 +26,7 @@ func run() error {
 	fmt.Println("training for function: 2x + 4")
 
 	for i := 0; i < 100; i++ {
-		loss, err := g.Wrap(xs, nil).Do(g.Mul, a).Do(g.Add, b).Do(g.MSE, ys).Value()
+		loss, err := xs.Do(g.Mul, a).Do(g.Add, b). /* .Do(g.MSE, ys) */ Value()
 		if err != nil {
 			return fmt.Errorf("error training: %w", err)
 		}
@@ -40,8 +43,7 @@ func run() error {
 		b.MustValue().ResetGradient()
 	}
 
-	fmt.Println("result loss: ", g.Wrap(xs, nil).Do(g.Mul, a).Do(g.Add, b).Do(g.MSE, ys))
-	fmt.Println("a: ", a)
-	fmt.Println("b: ", b)
+	fmt.Println()
+	fmt.Println("result loss: ", xs.Do(g.Mul, a).Do(g.Add, b))
 	return nil
-} */
+}
