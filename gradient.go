@@ -1,7 +1,7 @@
 package gosor
 
 func addAddGradientTrackerToRes(res, t1, t2 *Tensor) {
-	addGradientTracker(res, t1, t2, func() ([]*Tensor, error) {
+	addGradientTracker(res, []*Tensor{t1, t2}, func() ([]*Tensor, error) {
 		return []*Tensor{
 			Wrap(New(WithValues(1))).MustValue(),
 			Wrap(New(WithValues(1))).MustValue(),
@@ -10,7 +10,7 @@ func addAddGradientTrackerToRes(res, t1, t2 *Tensor) {
 }
 
 func addSubGradientTrackerToRes(res, t1, t2 *Tensor) {
-	addGradientTracker(res, t1, t2, func() ([]*Tensor, error) {
+	addGradientTracker(res, []*Tensor{t1, t2}, func() ([]*Tensor, error) {
 		return []*Tensor{
 			Wrap(New(WithValues(1))).MustValue(),
 			Wrap(New(WithValues(-1))).MustValue(),
@@ -19,7 +19,7 @@ func addSubGradientTrackerToRes(res, t1, t2 *Tensor) {
 }
 
 func addMulGradientTrackerToRes(res, t1, t2 *Tensor) {
-	addGradientTracker(res, t1, t2, func() ([]*Tensor, error) {
+	addGradientTracker(res, []*Tensor{t1, t2}, func() ([]*Tensor, error) {
 		t1LocalGrad, err := t2.DeepCopy()
 		if err != nil {
 			return nil, err
@@ -36,7 +36,7 @@ func addMulGradientTrackerToRes(res, t1, t2 *Tensor) {
 }
 
 func addPowGradientTrackerToRes(res, t1, t2 *Tensor) {
-	addGradientTracker(res, t1, t2, func() ([]*Tensor, error) {
+	addGradientTracker(res, []*Tensor{t1, t2}, func() ([]*Tensor, error) {
 		// localGradient = t2 * t1**(t2-1)
 		tensor1 := Wrap(t1, nil)
 		tensor2 := Wrap(t2, nil)

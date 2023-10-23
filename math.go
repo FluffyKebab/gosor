@@ -114,7 +114,7 @@ func elementWiseOperationInto(
 		return nil, fmt.Errorf("%w: nil tensor", ErrInvalidTensor)
 	}
 	if len(t1.sizes) == 0 || len(t2.sizes) == 0 {
-		return nil, ErrInvalidTensor
+		return nil, fmt.Errorf("%w: no size", ErrInvalidTensor)
 	}
 
 	t1, t2, err = Broadcast(t1, t2)
@@ -129,11 +129,11 @@ func elementWiseOperationInto(
 		}
 	} else {
 		if len(t1.sizes) != len(result.sizes) {
-			return nil, fmt.Errorf("wrong result size")
+			return nil, fmt.Errorf("wrong result size, want: %v, got: %v", t1.sizes, result.sizes)
 		}
 		for i := 0; i < len(t1.sizes); i++ {
 			if t1.sizes[i] != result.sizes[i] {
-				return nil, fmt.Errorf("wrong result size")
+				return nil, fmt.Errorf("wrong result size, want: %v, got: %v", t1.sizes, result.sizes)
 			}
 		}
 	}

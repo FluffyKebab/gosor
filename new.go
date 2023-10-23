@@ -5,10 +5,11 @@ import (
 )
 
 type newOptions struct {
-	size           []int
-	storage        []float64
-	isNotLeaf      bool
-	storageCreator func() ([]float64, error)
+	size            []int
+	storage         []float64
+	isNotLeaf       bool
+	storageCreator  func() ([]float64, error)
+	gradientTracker *GradientTracker
 }
 
 type newOption func(*newOptions)
@@ -36,6 +37,12 @@ func WithRange(start, end, step float64) newOption {
 			}
 			return res, nil
 		}
+	}
+}
+
+func WithRecordGradients() newOption {
+	return func(no *newOptions) {
+		no.gradientTracker = &GradientTracker{}
 	}
 }
 
@@ -75,13 +82,18 @@ func New(opts ...newOption) (t *Tensor, err error) {
 		return nil, fmt.Errorf("wrong length of storage for sizes. Got: %d. Want: %d", len(options.storage), storageLen)
 	}
 
+	if options.isNotLeaf {
+		options.gradientTracker = &GradientTracker{
+			isNotLeaf: true,
+		}
+	}
+
 	return &Tensor{
-		GradientTracker: &GradientTracker{},
+		GradientTracker: options.gradientTracker,
 		strides:         strides,
 		sizes:           options.size,
 		offset:          0,
 		storage:         options.storage,
-		isNotLeaf:       options.isNotLeaf,
 	}, nil
 }
 

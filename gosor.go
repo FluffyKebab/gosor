@@ -4,11 +4,10 @@ import "fmt"
 
 type Tensor struct {
 	*GradientTracker
-	storage   []float64
-	strides   []int
-	sizes     []int
-	offset    int
-	isNotLeaf bool
+	storage []float64
+	strides []int
+	sizes   []int
+	offset  int
 }
 
 func (t *Tensor) Items() []float64 {
@@ -108,7 +107,7 @@ func Sum(t *Tensor) (*Tensor, error) {
 		resSize = t.sizes[1:]
 	}
 
-	res, err := New(WithSize(resSize...), withIsNotLeaf())
+	res, err := New(WithSize(resSize...), WithRecordGradients())
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +117,19 @@ func Sum(t *Tensor) (*Tensor, error) {
 		if err != nil {
 			return nil, err
 		}
-		AddInto(res, res, cur)
+		_, err = AddInto(res, res, cur)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	res.isNotLeaf = true
+	addGradientTracker(res, []*Tensor{t}, func() ([]*Tensor, error) {
+		g := Wrap(New(WithSize(t.sizes...)))
+		g.DoInto(g, AddInto, Wrap(New(WithValues(1))))
+		grad, err := g.Value()
+		return []*Tensor{grad}, err
+	})
 
 	return res, nil
 }

@@ -10,6 +10,7 @@ func (m1 *MaybeTensor) Do(f func(*Tensor, *Tensor) (*Tensor, error), m2 *MaybeTe
 		return m1
 	}
 	if m2.err != nil {
+		m1.err = m2.err
 		return m2
 	}
 
@@ -25,7 +26,12 @@ func (m1 *MaybeTensor) DoInto(
 		return m1
 	}
 	if m2.err != nil {
-		return nil
+		m1.err = m2.err
+		return m2
+	}
+	if result != nil && result.err != nil {
+		m1.err = result.err
+		return result
 	}
 
 	return Wrap(f(result.t, m1.t, m2.t))
@@ -89,21 +95,3 @@ func Wrap(t *Tensor, err error) *MaybeTensor {
 		err: err,
 	}
 }
-
-/*
-
-for i := 0; i < len(weights); i++ {
-	outputs, err := inputs.Do(gosor.Dot, wights[i]).Do(gosor.Add, bias[i]).DoT(gosor.Tanh).Value()
-	if err != nil {
-		return err
-	}
-	inputs = outputs
-}
-
-loss, err := expected.Do(gsor.Sub, inputs).Do(gsor.Square).DoT(gsor.Sum).Value()
-if err != nil {
-	return err
-}
-
-loss.backwards()
-*/

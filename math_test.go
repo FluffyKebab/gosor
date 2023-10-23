@@ -63,6 +63,11 @@ func TestAddWithDifferentDimensions(t *testing.T) {
 			Wrap(New(WithSize(3, 2), WithValues(2, 2, 3, 3, 6, 6))),
 			[]float64{4, 5, 5, 6, 8, 9},
 		},
+		{
+			Wrap(New(WithValues(0, 0, 0, 0))),
+			Wrap(New(WithValues(1))),
+			[]float64{1, 1, 1, 1},
+		},
 	}
 
 	for _, tc := range testCases {

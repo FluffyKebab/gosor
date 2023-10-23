@@ -26,8 +26,6 @@ func run() error {
 			return fmt.Errorf("training failed: %w", err)
 		}
 
-		fmt.Println("loss: ", loss)
-
 		err = loss.Backward(nil)
 		if err != nil {
 			return fmt.Errorf("training failed: %w", err)

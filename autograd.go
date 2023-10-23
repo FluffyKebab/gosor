@@ -5,9 +5,10 @@ import "fmt"
 type GradFunc func() ([]*Tensor, error)
 
 type GradientTracker struct {
-	children []*GradientTracker
-	gradient *Tensor
-	gradFunc GradFunc
+	children  []*GradientTracker
+	gradient  *Tensor
+	gradFunc  GradFunc
+	isNotLeaf bool
 }
 
 func (g *GradientTracker) Gradient() (*Tensor, error) {
@@ -22,10 +23,12 @@ func (g *GradientTracker) ResetGradient() {
 }
 
 func (g *GradientTracker) Backward(previousGradient *Tensor) (err error) {
+	if g == nil {
+		return fmt.Errorf("backwards on tensor without gradient tracker")
+	}
 	if previousGradient == nil {
 		previousGradient = Wrap(New(WithValues(1))).MustValue()
 	}
-	fmt.Println("doing backward with prev grad: ", previousGradient)
 
 	if g.gradient == nil {
 		g.gradient, err = New(WithSize(previousGradient.sizes...))
@@ -40,40 +43,59 @@ func (g *GradientTracker) Backward(previousGradient *Tensor) (err error) {
 	}
 
 	if g.gradFunc == nil {
-		return nil
+		return
 	}
 	localGradients, err := g.gradFunc()
 	if err != nil {
 		return fmt.Errorf("calculating local gradient: %w", err)
 	}
 	if len(localGradients) != len(g.children) {
-		return fmt.Errorf("wrong amount tensors returned from grad func")
+		return fmt.Errorf("wrong amount tensors returned from grad func, should be one for each child.")
 	}
 
-	globalGradient := localGradients
-	for _, gradient := range globalGradient {
-		if gradient == nil {
+	globalGradient := make([]*Tensor, 0, len(localGradients))
+	for i := 0; i < len(localGradients); i++ {
+		if localGradients[i] == nil {
 			continue
 		}
-		_, err := MulInto(gradient, gradient, previousGradient)
+		curGlobalGrad, err := Mul(localGradients[i], previousGradient)
 		if err != nil {
-			return err
+			return fmt.Errorf("multiplication of local and global gradient: %w", err)
+		}
+		globalGradient = append(globalGradient, curGlobalGrad)
+	}
+
+	for i := 0; i < len(globalGradient); i++ {
+		if globalGradient[i] != nil && g.children[i] != nil {
+			err := g.children[i].Backward(globalGradient[i])
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	for i := 0; i < len(localGradients); i++ {
-		if globalGradient[i] != nil {
-			g.children[i].Backward(globalGradient[i])
-		}
-	}
-
-	return nil
+	return
 }
 
-func addGradientTracker(res, t1, t2 *Tensor, gradFunc GradFunc) {
-	if res.isNotLeaf && (res.gradFunc == nil && (t1.GradientTracker != nil || t2.GradientTracker != nil)) {
+func addGradientTracker(res *Tensor, children []*Tensor, gradFunc GradFunc) {
+	if res == nil || res.GradientTracker == nil {
+		return
+	}
+	if res.isNotLeaf {
+		childrenTrackers := make([]*GradientTracker, len(children))
+		shouldHaveTracker := false
+		for i := 0; i < len(children); i++ {
+			if children[i].GradientTracker != nil {
+				childrenTrackers[i] = children[i].GradientTracker
+				shouldHaveTracker = true
+			}
+		}
+		if !shouldHaveTracker {
+			return
+		}
+
 		res.GradientTracker = &GradientTracker{
-			children: []*GradientTracker{t1.GradientTracker, t2.GradientTracker},
+			children: childrenTrackers,
 			gradFunc: gradFunc,
 		}
 	}
